@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-sudo pacman -S --needed --noconfirm arch-install-scripts
+sudo pacman -S --needed --noconfirm arch-install-scripts gdisk qemu-img dosfstools
 if [ -n "$CI" ]; then
 	imgfile=$(mktemp)
 else

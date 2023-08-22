@@ -14,7 +14,7 @@ jobs:
       - name: Run build.sh
         shell: bash
         run: |
-          sudo pacman -Sy
+          pacman -Sy --noconfirm sudo
           ./build.sh
       - name: Archive built image
         uses: actions/upload-artifact@v3

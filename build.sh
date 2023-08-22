@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-sudo pacman -S --needed arch-install-scripts
+sudo pacman -S --needed --noconfirm arch-install-scripts
 imgfile=/dev/shm/archfile.img
 
 rm -rf $imgfile && touch $imgfile

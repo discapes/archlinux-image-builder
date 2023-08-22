@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Run build.sh
         shell: bash
         run: ./build.sh

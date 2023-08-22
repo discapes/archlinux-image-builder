@@ -11,4 +11,8 @@ jobs:
       - name: Run build.sh
         shell: bash
         run: ./build.sh
-
+      - name: Archive built image
+        uses: actions/upload-artifact@v3
+        with:
+          name: archfile.qcow2
+          path: archfile.qcow2

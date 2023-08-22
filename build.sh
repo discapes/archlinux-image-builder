@@ -3,38 +3,35 @@
 set -euo pipefail
 
 sudo pacman -S --needed --noconfirm arch-install-scripts gdisk qemu-img dosfstools
-if [ -n "$CI" ]; then
+if [ -n "${CI:-}" ]; then
 	imgfile=$(mktemp)
 else
 	imgfile=/dev/shm/archfile.img
 fi
-
 rm -rf $imgfile && touch $imgfile
 dd if=/dev/zero of=$imgfile bs=1G count=2
 echo "o-y n-1--+300M-ef00 n-2---8300 p w-y" | sed 's/[ -]/\n/g' | gdisk $imgfile >/dev/null
 fdisk -l $imgfile
 
-sudo \
-efistart=$(fdisk -l $imgfile | tail -2 | head -1 | tr -s ' ' | cut -d' ' -f2) \
-efisize=$(fdisk -l $imgfile | tail -2 | head -1 | tr -s ' ' | cut -d' ' -f4) \
-sysstart=$(fdisk -l $imgfile | tail -1 | tr -s ' ' | cut -d' ' -f2) \
-syssize=$(fdisk -l $imgfile | tail -1 | tr -s ' ' | cut -d' ' -f4) \
-bs=$(fdisk -l $imgfile | head -2 | tail -1 | rev | cut -f2 -d' ' | rev) \
-imgfile=$imgfile \
-bash <<'EOF'
+efistart=$(fdisk -l $imgfile | tail -2 | head -1 | tr -s ' ' | cut -d' ' -f2)
+efisize=$(fdisk -l $imgfile | tail -2 | head -1 | tr -s ' ' | cut -d' ' -f4)
+sysstart=$(fdisk -l $imgfile | tail -1 | tr -s ' ' | cut -d' ' -f2)
+syssize=$(fdisk -l $imgfile | tail -1 | tr -s ' ' | cut -d' ' -f4)
+bs=$(fdisk -l $imgfile | head -2 | tail -1 | rev | cut -f2 -d' ' | rev)
+bootloop=$(sudo losetup -o $((efistart*bs)) --sizelimit $((efisize*bs)) --show -f $imgfile)
+rootloop=$(sudo losetup -o $((sysstart*bs)) --sizelimit $((syssize*bs)) --show -f $imgfile)
+
+sudo bash <<EOF
+mkfs.fat -F32 $bootloop
+mkfs.ext4 $rootloop
 if mountpoint -q /mnt ; then
 	fuser -km /mnt
 	sleep 1
 	umount -R /mnt
 fi
-while [[ "$(losetup -l --noheadings --raw)" =~ loop[01] ]]; do losetup -D; echo waiting for loop devices to detach; sleep 1; done
-losetup -o $((efistart*bs)) --sizelimit $((efisize*bs)) /dev/loop0 $imgfile
-losetup -o $((sysstart*bs)) --sizelimit $((syssize*bs)) /dev/loop1 $imgfile
-mkfs.fat -F32 /dev/loop0
-mkfs.ext4 /dev/loop1
-mount /dev/loop1 /mnt
+mount $rootloop /mnt
 mkdir /mnt/boot
-mount /dev/loop0 /mnt/boot
+mount $bootloop /mnt/boot
 pacstrap -K /mnt base neovim cloud-guest-utils
 # piping would cause input to be left unread, causing pipefail
 head -n 6 < <(genfstab -U /mnt) > /mnt/etc/fstab
@@ -101,7 +98,7 @@ EOF
 sudo fuser -km /mnt
 sleep 1
 sudo umount -R /mnt
-while [[ "$(losetup -l --noheadings --raw)" =~ loop[01] ]]; do sudo losetup -D; echo waiting for loop devices to detach; sleep 1; done
+while [[ "$(losetup -l --noheadings --raw)" =~ ($bootloop|$rootloop) ]]; do sudo losetup -D; echo waiting for loop devices to detach; sleep 1; done
 qemu-img convert -f raw -O qcow2 $imgfile archfile.qcow2
 rm $imgfile
 qemu-img resize archfile.qcow2 20G

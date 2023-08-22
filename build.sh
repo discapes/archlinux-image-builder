@@ -4,7 +4,7 @@ set -euo pipefail
 
 sudo pacman -S --needed --noconfirm arch-install-scripts gdisk qemu-img dosfstools
 if [ -n "${CI:-}" ]; then
-	imgfile=$(mktemp)
+	imgfile=/archfile.img
 else
 	imgfile=/dev/shm/archfile.img
 fi
@@ -42,8 +42,6 @@ set -euo pipefail
 ln -sf /usr/share/zoneinfo/Europe/Helsinki /etc/localtime
 hwclock --systohc
 echo -e "en_US.UTF-8 UTF-8\nfi_FI.UTF-8 UTF-8" > /etc/locale.gen
-# for some reason fi_FI isn't available when pacstrapped from CI
-[ ! -f /usr/share/i18n/locales/fi_FI ] && pacman -S --noconfirm glibc
 locale-gen
 echo LANG=en_US.UTF-8 > /etc/locale.conf
 echo KEYMAP=fi > /etc/vconsole.conf

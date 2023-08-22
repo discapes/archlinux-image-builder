@@ -35,6 +35,10 @@ mount $bootloop /mnt/boot
 pacstrap -K /mnt base neovim cloud-guest-utils
 # piping would cause input to be left unread, causing pipefail
 head -n 6 < <(genfstab -U /mnt) > /mnt/etc/fstab
+cat <<EOF2> /mnt/etc/fstab
+/dev/sda2	/		ext4	rw,relatime	0 1
+/dev/sda1	/boot	vfat	rw,relatime	0 2
+EOF2
 EOF
 
 sudo arch-chroot /mnt bash <<'EOF'

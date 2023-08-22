@@ -41,7 +41,7 @@ sudo arch-chroot /mnt bash <<'EOF'
 set -euo pipefail
 ln -sf /usr/share/zoneinfo/Europe/Helsinki /etc/localtime
 hwclock --systohc
-echo -e "en_US.UTF-8 UTF-8\nfi_FI.UTF-8 UTF-8" > /etc/locale.gen
+echo -e "en_US.UTF-8 UTF-8" > /etc/locale.gen
 locale-gen
 echo LANG=en_US.UTF-8 > /etc/locale.conf
 echo KEYMAP=fi > /etc/vconsole.conf

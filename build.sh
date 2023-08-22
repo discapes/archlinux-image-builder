@@ -3,7 +3,11 @@
 set -euo pipefail
 
 sudo pacman -S --needed --noconfirm arch-install-scripts
-imgfile=/dev/shm/archfile.img
+if [ -n "$CI" ]; then
+	imgfile=$(mktemp)
+else
+	imgfile=/dev/shm/archfile.img
+fi
 
 rm -rf $imgfile && touch $imgfile
 dd if=/dev/zero of=$imgfile bs=1G count=2

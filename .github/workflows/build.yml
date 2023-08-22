@@ -13,7 +13,9 @@ jobs:
         uses: actions/checkout@v3
       - name: Run build.sh
         shell: bash
-        run: ./build.sh
+        run: |
+          sudo pacman -Sy
+          ./build.sh
       - name: Archive built image
         uses: actions/upload-artifact@v3
         with:

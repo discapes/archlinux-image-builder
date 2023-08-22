@@ -18,7 +18,7 @@ jobs:
         run: |
           # thanks for making me figure that out
           sed -Ei 's/^(HoldPkg|NoExtract).*//' /etc/pacman.conf
-          pacman -Sy --noconfirm sudo
+          pacman -Sy --noconfirm sudo glibc
           ./build.sh
       - name: Archive built image
         uses: actions/upload-artifact@v3

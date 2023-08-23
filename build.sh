@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+EXTRACMDS="${1:-}"
 CMDLINE='quiet video=800x600'
 FONT='Lat2-Terminus16'
 LOCALECONF='LANG=en_US.UTF-8
@@ -17,13 +18,18 @@ HOSTNAME='archfile'
 TIMEZONE='Europe/Helsinki'
 
 sudo pacman -S --needed --noconfirm arch-install-scripts gdisk qemu-img dosfstools
+
+imgfile=/dev/shm/archfile.img
+imgsize=1
+
 if [ -n "${CI:-}" ]; then
 	imgfile=$(mktemp)
-else
-	imgfile=/dev/shm/archfile.img
+elif [ -n "${EXTRACMDS:-}" ]; then
+	imgsize=2
 fi
+
 rm -rf $imgfile && touch $imgfile
-dd if=/dev/zero of=$imgfile bs=1G count=1
+dd if=/dev/zero of=$imgfile bs=1G count=$imgsize
 echo "o-y n-1--+40M-ef00 n-2---8300 p w-y" | sed 's/[ -]/\n/g' | gdisk $imgfile >/dev/null
 fdisk -l $imgfile
 
@@ -63,7 +69,6 @@ ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 echo -e "$LOCALES" > /etc/locale.gen
 locale-gen
-echo "nameserver 1.1.1.1" > /etc/resolv.conf
 echo -e "$LOCALECONF" > /etc/locale.conf
 echo -e "KEYMAP=$KEYMAP\nFONT=$FONT" > /etc/vconsole.conf
 echo $HOSTNAME > /etc/hostname
@@ -115,7 +120,11 @@ PRESETS=('default')
 default_uki="/boot/efi/boot/bootx64.efi"
 EOF2
 pacman -S --noconfirm --cachedir /tmp linux
+$EXTRACMDS
 EOF
+
+# took me a while to realize arch-chroot mounts resolv.conf
+echo "nameserver 1.1.1.1" | sudo tee /mnt/etc/resolv.conf
 
 sudo fuser -km /mnt
 sleep 1

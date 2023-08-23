@@ -63,12 +63,11 @@ ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 hwclock --systohc
 echo -e "$LOCALES" > /etc/locale.gen
 locale-gen
+echo "nameserver 1.1.1.1" > /etc/resolv.conf
 echo -e "$LOCALECONF" > /etc/locale.conf
 echo -e "KEYMAP=$KEYMAP\nFONT=$FONT" > /etc/vconsole.conf
 echo $HOSTNAME > /etc/hostname
 echo -e "$PASSWD\n$PASSWD" | passwd
-ln -s nvim /usr/bin/vim
-ln -s nvim /usr/bin/vi
 
 
 # NETWORK
@@ -79,7 +78,7 @@ Type=ether
 DHCP=yes
 DNS=1.1.1.1
 EOF2
-systemctl enable systemd-networkd systemd-resolved
+systemctl enable systemd-networkd
 
 
 # GROWPART

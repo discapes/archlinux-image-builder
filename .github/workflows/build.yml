@@ -17,7 +17,7 @@ jobs:
         shell: bash
         run: |
           # thanks for making me figure that out
-          sed -Ei 's/^(HoldPkg|NoExtract).*//' /etc/pacman.conf
+          sed -Ei 's/^NoExtract.*//' /etc/pacman.conf
           pacman -Sy --noconfirm sudo glibc
           ./build.sh
       - name: Archive built image

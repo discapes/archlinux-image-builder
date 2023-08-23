@@ -23,8 +23,8 @@ else
 	imgfile=/dev/shm/archfile.img
 fi
 rm -rf $imgfile && touch $imgfile
-dd if=/dev/zero of=$imgfile bs=1G count=2
-echo "o-y n-1--+300M-ef00 n-2---8300 p w-y" | sed 's/[ -]/\n/g' | gdisk $imgfile >/dev/null
+dd if=/dev/zero of=$imgfile bs=100M count=12
+echo "o-y n-1--+30M-ef00 n-2---8300 p w-y" | sed 's/[ -]/\n/g' | gdisk $imgfile >/dev/null
 fdisk -l $imgfile
 
 efistart=$(fdisk -l $imgfile | tail -2 | head -1 | tr -s ' ' | cut -d' ' -f2)
@@ -48,7 +48,7 @@ fi
 mount $rootloop /mnt
 mkdir /mnt/boot
 mount $bootloop /mnt/boot
-pacstrap -K /mnt base neovim mkinitcpio cloud-guest-utils
+pacstrap -c -K /mnt base neovim mkinitcpio cloud-guest-utils
 # piping would cause input to be left unread, causing pipefail
 head -n 6 < <(genfstab -U /mnt) > /mnt/etc/fstab
 cat <<EOF2> /mnt/etc/fstab
@@ -111,12 +111,11 @@ mkdir -p /boot/efi/boot
 echo 'root=UUID=$rootuuid rw $CMDLINE' > /etc/kernel/cmdline
 sed -i -e 's/base udev/systemd/' -e 's/keyboard keymap consolefont //' /etc/mkinitcpio.conf
 cat <<EOF2> /etc/mkinitcpio.d/linux.preset 
-ALL_kver="/boot/vmlinuz-linux"
+ALL_kver="/tmp/vmlinuz-linux"
 PRESETS=('default')
 default_uki="/boot/efi/boot/bootx64.efi"
 EOF2
-pacman -S --noconfirm linux
-pacman -Scc --noconfirm
+pacman -S --noconfirm --cachedir /tmp linux
 EOF
 
 sudo fuser -km /mnt
@@ -124,5 +123,5 @@ sleep 1
 sudo umount -R /mnt
 while [[ "$(losetup -l --noheadings --raw)" =~ ($bootloop|$rootloop) ]]; do sudo losetup -D; echo waiting for loop devices to detach; sleep 1; done
 qemu-img convert -f raw -O qcow2 $imgfile archfile.qcow2
-rm $imgfile
 qemu-img resize archfile.qcow2 20G
+mv $imgfile archfile.img

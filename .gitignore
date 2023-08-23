@@ -1,1 +1,2 @@
-archfile.qcow2
+*.qcow2*
+*.img*

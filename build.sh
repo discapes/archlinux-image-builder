@@ -23,8 +23,8 @@ else
 	imgfile=/dev/shm/archfile.img
 fi
 rm -rf $imgfile && touch $imgfile
-dd if=/dev/zero of=$imgfile bs=100M count=12
-echo "o-y n-1--+30M-ef00 n-2---8300 p w-y" | sed 's/[ -]/\n/g' | gdisk $imgfile >/dev/null
+dd if=/dev/zero of=$imgfile bs=1G count=1
+echo "o-y n-1--+40M-ef00 n-2---8300 p w-y" | sed 's/[ -]/\n/g' | gdisk $imgfile >/dev/null
 fdisk -l $imgfile
 
 efistart=$(fdisk -l $imgfile | tail -2 | head -1 | tr -s ' ' | cut -d' ' -f2)
@@ -48,7 +48,7 @@ fi
 mount $rootloop /mnt
 mkdir /mnt/boot
 mount $bootloop /mnt/boot
-pacstrap -c -K /mnt base neovim mkinitcpio cloud-guest-utils
+pacstrap -c -K /mnt base mkinitcpio cloud-guest-utils
 # piping would cause input to be left unread, causing pipefail
 head -n 6 < <(genfstab -U /mnt) > /mnt/etc/fstab
 cat <<EOF2> /mnt/etc/fstab

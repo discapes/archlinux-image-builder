@@ -12,7 +12,7 @@ jobs:
       options: --privileged
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Run build.sh
         shell: bash
         run: |
@@ -21,7 +21,7 @@ jobs:
           pacman -Sy --noconfirm sudo glibc
           ./build.sh
       - name: Archive built image
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v7
         with:
           name: archfile.qcow2
           path: archfile.qcow2
